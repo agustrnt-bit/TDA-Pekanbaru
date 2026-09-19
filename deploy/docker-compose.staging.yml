@@ -38,7 +38,7 @@ services:
       PORT: 3000
       HOST: 0.0.0.0
       TZ: Asia/Jakarta
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      DATABASE_URL: ${DATABASE_URL}
       UPLOAD_PATH: /data/uploads
       PG_POOL_MAX: 10
     volumes:
