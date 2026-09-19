@@ -53,12 +53,36 @@ function getPool() {
   return pool;
 }
 
-function quoteCamelCaseAliases(sql: string) {
-  return sql.replace(/\bAS\s+([A-Za-z_][A-Za-z0-9_]*)/g, (match, alias: string) => {
-    // Do not touch CAST(... AS INTEGER/TEXT/...) or normal lowercase aliases.
-    if (!/[a-z]/.test(alias) || !/[A-Z]/.test(alias)) return match;
-    return `AS "${alias}"`;
-  });
+function camelCaseAliases(sql: string) {
+  const aliases = new Map<string, string>();
+  const pattern = /\bAS\s+([A-Za-z_][A-Za-z0-9_]*)/g;
+  let match: RegExpExecArray | null;
+  while ((match = pattern.exec(sql)) !== null) {
+    const alias = match[1];
+    // Ignore CAST(... AS INTEGER/TEXT/REAL/...) and ordinary lowercase aliases.
+    if (!/[a-z]/.test(alias) || !/[A-Z]/.test(alias)) continue;
+    aliases.set(alias.toLowerCase(), alias);
+  }
+  return aliases;
+}
+
+function normalizeRowAliases(
+  row: Record<string, unknown>,
+  aliases: Map<string, string>,
+) {
+  if (!aliases.size) return row;
+  const normalized = { ...row };
+  for (const [postgresName, d1Name] of aliases) {
+    if (
+      postgresName !== d1Name &&
+      Object.prototype.hasOwnProperty.call(normalized, postgresName) &&
+      !Object.prototype.hasOwnProperty.call(normalized, d1Name)
+    ) {
+      normalized[d1Name] = normalized[postgresName];
+      delete normalized[postgresName];
+    }
+  }
+  return normalized;
 }
 
 function sqliteCompatibility(sql: string) {
@@ -69,6 +93,18 @@ function sqliteCompatibility(sql: string) {
     insertOrIgnore = true;
     output = output.replace(/\bINSERT\s+OR\s+IGNORE\s+INTO\b/gi, "INSERT INTO");
   }
+
+  // SQLite GROUP_CONCAT(value [, separator]) maps to PostgreSQL STRING_AGG.
+  // The Version 61 queries only use simple column references here.
+  output = output.replace(
+    /\bGROUP_CONCAT\s*\(\s*([A-Za-z_][A-Za-z0-9_.]*)\s*,\s*'((?:''|[^'])*)'\s*\)/gi,
+    (_match, expression: string, separator: string) =>
+      `STRING_AGG(CAST(${expression} AS text), '${separator}')`,
+  );
+  output = output.replace(
+    /\bGROUP_CONCAT\s*\(\s*([A-Za-z_][A-Za-z0-9_.]*)\s*\)/gi,
+    "STRING_AGG(CAST($1 AS text), ',')",
+  );
 
   // SQLite's NOCASE collation is primarily used here for case-insensitive
   // ordering. PostgreSQL does not ship an equivalent collation by that name.
@@ -81,9 +117,25 @@ function sqliteCompatibility(sql: string) {
   // PostgreSQL equivalent for the application's search fields.
   output = output.replace(/\bLIKE\b/gi, "ILIKE");
   output = output.replace(/\bIFNULL\s*\(/gi, "COALESCE(");
-  output = output.replace(/\bdatetime\s*\(\s*'now'\s*\)/gi, "CURRENT_TIMESTAMP");
-  output = output.replace(/\bdate\s*\(\s*'now'\s*\)/gi, "CURRENT_DATE");
-  output = quoteCamelCaseAliases(output);
+
+  // SQLite date()/datetime() return text. Keep that behavior for business
+  // columns which were migrated from SQLite as TEXT.
+  output = output.replace(
+    /\bdatetime\s*\(\s*'now'\s*\)/gi,
+    "TO_CHAR(CURRENT_TIMESTAMP AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI:SS')",
+  );
+  output = output.replace(
+    /\bdate\s*\(\s*'now'\s*\)/gi,
+    "TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD')",
+  );
+  output = output.replace(
+    /\bdatetime\s*\(\s*([A-Za-z_][A-Za-z0-9_.]*|\?)\s*\)/gi,
+    "REPLACE(SUBSTRING(CAST($1 AS text) FROM 1 FOR 19), 'T', ' ')",
+  );
+  output = output.replace(
+    /\bdate\s*\(\s*([A-Za-z_][A-Za-z0-9_.]*|\?)\s*\)/gi,
+    "SUBSTRING(CAST($1 AS text) FROM 1 FOR 10)",
+  );
 
   if (insertOrIgnore && !/\bON\s+CONFLICT\b/i.test(output)) {
     const returning = output.search(/\bRETURNING\b/i);
@@ -177,6 +229,10 @@ function addReturningId(sql: string) {
   return `${base} RETURNING id${semicolon ? ";" : ""}`;
 }
 
+function compactSql(sql: string) {
+  return sql.replace(/\s+/g, " ").trim().slice(0, 2000);
+}
+
 class VpsPreparedStatement {
   private values: BoundValue[] = [];
 
@@ -195,8 +251,42 @@ class VpsPreparedStatement {
     return translateSql(this.sourceSql);
   }
 
+  private aliases() {
+    return camelCaseAliases(this.sourceSql);
+  }
+
+  private normalizeResult(result: QueryResult) {
+    const aliases = this.aliases();
+    if (!aliases.size || !result.rows.length) return result;
+    return {
+      ...result,
+      rows: result.rows.map((row) =>
+        normalizeRowAliases(row as Record<string, unknown>, aliases),
+      ),
+    } as QueryResult;
+  }
+
+  private logQueryError(error: unknown, translatedSql: string) {
+    const detail = error as { code?: string; message?: string };
+    console.error("PostgreSQL compatibility query failed", {
+      code: detail.code,
+      message: detail.message,
+      sourceSql: compactSql(this.sourceSql),
+      translatedSql: compactSql(translatedSql),
+    });
+  }
+
+  private async query(queryable: Queryable, sql: string) {
+    try {
+      return this.normalizeResult(await queryable.query(sql, this.values));
+    } catch (error) {
+      this.logQueryError(error, sql);
+      throw error;
+    }
+  }
+
   async execute(queryable: Queryable = getPool()) {
-    return queryable.query(this.translatedSql(), this.values);
+    return this.query(queryable, this.translatedSql());
   }
 
   async all<T = Record<string, unknown>>(): Promise<D1Result<T>> {
@@ -218,8 +308,13 @@ class VpsPreparedStatement {
 
   async raw<T = unknown[]>(options?: { columnNames?: boolean }): Promise<T[]> {
     const result = await this.execute();
-    const fields = result.fields.map((field) => field.name);
-    const rows = result.rows.map((row) => fields.map((field) => row[field])) as T[];
+    const aliases = this.aliases();
+    const fields = result.fields.map(
+      (field) => aliases.get(field.name.toLowerCase()) ?? field.name,
+    );
+    const rows = result.rows.map((row) =>
+      fields.map((field) => (row as Record<string, unknown>)[field]),
+    ) as T[];
     if (options?.columnNames) return [fields as unknown as T, ...rows];
     return rows;
   }
@@ -230,18 +325,24 @@ class VpsPreparedStatement {
     let lastRowId = 0;
 
     if (isInsert(translated) && !alreadyReturns(translated)) {
+      const withReturning = addReturningId(translated);
       try {
-        result = await getPool().query(addReturningId(translated), this.values);
+        result = this.normalizeResult(
+          await getPool().query(withReturning, this.values),
+        );
         lastRowId = Number(result.rows[0]?.id ?? 0);
       } catch (error) {
         // 42703 = undefined_column. Junction/config tables without an id column
         // are retried without RETURNING. The failed PostgreSQL statement is
         // atomic, so it has not inserted a duplicate row before the retry.
-        if ((error as { code?: string }).code !== "42703") throw error;
-        result = await getPool().query(translated, this.values);
+        if ((error as { code?: string }).code !== "42703") {
+          this.logQueryError(error, withReturning);
+          throw error;
+        }
+        result = await this.query(getPool(), translated);
       }
     } else {
-      result = await getPool().query(translated, this.values);
+      result = await this.query(getPool(), translated);
       lastRowId = Number(result.rows[0]?.id ?? 0);
     }
 
@@ -282,11 +383,23 @@ class VpsD1Database {
   }
 
   async exec(sql: string) {
-    const result = await getPool().query(sqliteCompatibility(sql));
-    return {
-      count: result.rowCount ?? 0,
-      duration: 0,
-    };
+    const translated = sqliteCompatibility(sql);
+    try {
+      const result = await getPool().query(translated);
+      return {
+        count: result.rowCount ?? 0,
+        duration: 0,
+      };
+    } catch (error) {
+      const detail = error as { code?: string; message?: string };
+      console.error("PostgreSQL compatibility exec failed", {
+        code: detail.code,
+        message: detail.message,
+        sourceSql: compactSql(sql),
+        translatedSql: compactSql(translated),
+      });
+      throw error;
+    }
   }
 }
 
