@@ -167,13 +167,13 @@ export async function upsertLpj(programId: number, userId: number, input: {
 }) {
   await db().prepare(`INSERT INTO program_lpj
     (program_id, status, summary, result, evaluation, submitted_at, completed_at, updated_by_user_id, updated_at)
-    VALUES (?, ?, ?, ?, ?, CASE WHEN ? IN ('diajukan', 'selesai') THEN CURRENT_TIMESTAMP ELSE NULL END,
-      CASE WHEN ? = 'selesai' THEN CURRENT_TIMESTAMP ELSE NULL END, ?, CURRENT_TIMESTAMP)
+    VALUES (?, ?, ?, ?, ?, CASE WHEN ? IN ('diajukan', 'selesai') THEN datetime('now') ELSE NULL END,
+      CASE WHEN ? = 'selesai' THEN datetime('now') ELSE NULL END, ?, datetime('now'))
     ON CONFLICT(program_id) DO UPDATE SET status = excluded.status, summary = excluded.summary,
       result = excluded.result, evaluation = excluded.evaluation,
-      submitted_at = CASE WHEN excluded.status IN ('diajukan', 'selesai') THEN COALESCE(program_lpj.submitted_at, CURRENT_TIMESTAMP) ELSE program_lpj.submitted_at END,
-      completed_at = CASE WHEN excluded.status = 'selesai' THEN COALESCE(program_lpj.completed_at, CURRENT_TIMESTAMP) ELSE NULL END,
-      updated_by_user_id = excluded.updated_by_user_id, updated_at = CURRENT_TIMESTAMP`)
+      submitted_at = CASE WHEN excluded.status IN ('diajukan', 'selesai') THEN COALESCE(program_lpj.submitted_at, datetime('now')) ELSE program_lpj.submitted_at END,
+      completed_at = CASE WHEN excluded.status = 'selesai' THEN COALESCE(program_lpj.completed_at, datetime('now')) ELSE NULL END,
+      updated_by_user_id = excluded.updated_by_user_id, updated_at = datetime('now')`)
     .bind(programId, input.status, input.summary, input.result, input.evaluation,
       input.status, input.status, userId).run();
   return (await getProgramFinance(programId)).lpj;
