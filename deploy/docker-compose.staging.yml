@@ -23,6 +23,44 @@ services:
     networks:
       - tda_staging_internal
 
+  app:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.staging
+    container_name: tda-staging-app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      TDA_RUNTIME: vps
+      PORT: 3000
+      HOST: 0.0.0.0
+      TZ: Asia/Jakarta
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      UPLOAD_PATH: /data/uploads
+      PG_POOL_MAX: 10
+    volumes:
+      - /srv/tda-staging/storage/uploads:/data/uploads
+      - /srv/tda-staging/logs:/app/logs
+    ports:
+      - "127.0.0.1:3001:3000"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"const n=require('net').connect(3000,'127.0.0.1'); n.on('connect',()=>process.exit(0)); n.on('error',()=>process.exit(1));\"",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 20s
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - tda_staging_internal
+
 networks:
   tda_staging_internal:
     name: tda-staging-internal
