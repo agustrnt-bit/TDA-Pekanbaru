@@ -1,0 +1,3 @@
+import { accessErrorResponse, requireRegisteredUser } from "@/db/access-control";
+import { markNotification } from "@/db/program-activity";
+export async function PATCH(_request: Request, context: { params: Promise<{ id: string }> }) { try { const user = await requireRegisteredUser(); const id = Number((await context.params).id); if (!Number.isInteger(id) || id < 1) return Response.json({ error: "ID tidak valid." }, { status: 400 }); await markNotification(user.id, id); return Response.json({ ok: true }); } catch (reason) { return accessErrorResponse(reason, "Notifikasi belum dapat diperbarui."); } }

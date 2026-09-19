@@ -1,0 +1,4 @@
+import { accessErrorResponse, requireRegisteredUser } from "@/db/access-control";
+import { getNotificationCenter, markNotification } from "@/db/program-activity";
+export async function GET(request: Request) { try { const user = await requireRegisteredUser(); const url = new URL(request.url); const notificationLimit = Number(url.searchParams.get("notification_limit") || 30); const activityLimit = Number(url.searchParams.get("activity_limit") || 50); return Response.json(await getNotificationCenter(user, notificationLimit, activityLimit)); } catch (reason) { return accessErrorResponse(reason, "Notifikasi belum dapat dimuat."); } }
+export async function PATCH() { try { const user = await requireRegisteredUser(); await markNotification(user.id); return Response.json({ ok: true }); } catch (reason) { return accessErrorResponse(reason, "Notifikasi belum dapat diperbarui."); } }

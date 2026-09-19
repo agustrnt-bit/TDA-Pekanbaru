@@ -1,0 +1,2 @@
+ALTER TABLE `attendance_events` ADD `registration_open` integer DEFAULT true NOT NULL;--> statement-breakpoint
+CREATE UNIQUE INDEX `idx_attendance_participants_event_phone` ON `attendance_participants` (`event_id`,`phone`);

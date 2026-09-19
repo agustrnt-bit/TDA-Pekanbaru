@@ -1,0 +1,195 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1788271482981,
+      "tag": "0000_nappy_vermin",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1788273796838,
+      "tag": "0001_early_smasher",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1788277337441,
+      "tag": "0002_tidy_luminals",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1788302923624,
+      "tag": "0003_past_loners",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1788303430208,
+      "tag": "0004_clumsy_lockheed",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1788306639701,
+      "tag": "0005_talented_namora",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1788335739227,
+      "tag": "0006_tearful_charles_xavier",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1788345665830,
+      "tag": "0007_material_mentor",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1788346866944,
+      "tag": "0008_rare_magus",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1788348024707,
+      "tag": "0009_wonderful_inertia",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1788350162166,
+      "tag": "0010_chilly_obadiah_stane",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1788369940491,
+      "tag": "0011_chunky_wallflower",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1788370621937,
+      "tag": "0012_perpetual_titanium_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "6",
+      "when": 1788396251381,
+      "tag": "0013_soft_quicksilver",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "6",
+      "when": 1788397626944,
+      "tag": "0014_ambitious_power_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "6",
+      "when": 1788411684525,
+      "tag": "0015_spotty_warpath",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "6",
+      "when": 1788413659927,
+      "tag": "0016_lean_iron_patriot",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "6",
+      "when": 1788788216115,
+      "tag": "0017_tearful_kid_colt",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "6",
+      "when": 1788799239511,
+      "tag": "0018_cynical_maginty",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "6",
+      "when": 1788802132434,
+      "tag": "0019_hesitant_silver_samurai",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "6",
+      "when": 1788828794273,
+      "tag": "0020_mushy_richard_fisk",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "6",
+      "when": 1788965889007,
+      "tag": "0021_faithful_george_stacy",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "6",
+      "when": 1788966317835,
+      "tag": "0022_nervous_meggan",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "6",
+      "when": 1789024466379,
+      "tag": "0023_equal_sasquatch",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "6",
+      "when": 1789266643704,
+      "tag": "0024_powerful_sunset_bain",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "6",
+      "when": 1789440170368,
+      "tag": "0025_serious_ink",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "6",
+      "when": 1789440618905,
+      "tag": "0026_known_scrambler",
+      "breakpoints": true
+    }
+  ]
+}

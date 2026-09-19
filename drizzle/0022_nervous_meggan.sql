@@ -1,0 +1,1 @@
+ALTER TABLE `attendance_events` ADD `income_task_id` integer REFERENCES program_tasks(id);

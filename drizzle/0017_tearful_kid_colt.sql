@@ -1,0 +1,2 @@
+ALTER TABLE `program_incomes` ADD `attendance_participant_id` integer;--> statement-breakpoint
+CREATE INDEX `idx_program_incomes_attendance_participant` ON `program_incomes` (`attendance_participant_id`);

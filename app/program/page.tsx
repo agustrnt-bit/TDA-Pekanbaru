@@ -1,0 +1,11 @@
+import type { Metadata } from "next";
+import PublicProgramCatalog from "@/components/public-program-catalog";
+import { listPublicPrograms } from "@/db/public-programs";
+
+export const dynamic = "force-dynamic";
+export const metadata: Metadata = { title: "Program & Kegiatan TDA Pekanbaru", description: "Temukan program, kelas, dan kegiatan terbaru TDA Pekanbaru untuk belajar, bertumbuh, dan berkolaborasi.", openGraph: { title: "Program & Kegiatan TDA Pekanbaru", description: "Temukan program, kelas, dan kegiatan terbaru TDA Pekanbaru.", type: "website", locale: "id_ID", images: [] } };
+
+export default async function PublicProgramsPage() {
+  const programs = await listPublicPrograms().catch(() => []);
+  return <main className="min-h-screen bg-[#f3f7f3]"><header className="bg-[#0d2f20] text-white"><div className="mx-auto max-w-7xl px-5 py-6"><div className="flex items-center justify-between gap-4"><a href="/" className="flex items-center gap-3"><img src="/tda-pekanbaru.png" alt="TDA Pekanbaru" className="h-12 w-28 rounded-lg bg-white object-contain"/><div><p className="text-xs font-bold tracking-widest text-emerald-300">TDA PEKANBARU 9.0</p><p className="font-bold">Program untuk Member</p></div></a><nav className="hidden items-center gap-2 text-sm font-bold sm:flex"><a href="/tentang" className="rounded-xl px-3 py-2 hover:bg-white/10">Profil</a><a href="/kalender" className="rounded-xl px-3 py-2 hover:bg-white/10">Kalender</a><a href="/member" className="rounded-xl bg-emerald-400 px-4 py-2.5 text-emerald-950">Daftar Member</a></nav></div><div className="max-w-3xl pb-7 pt-12"><p className="text-sm font-bold uppercase tracking-[.18em] text-emerald-300">Belajar · Bertumbuh · Berkolaborasi</p><h1 className="mt-4 text-4xl font-black leading-tight sm:text-5xl">Temukan program yang membantu bisnis Anda naik kelas.</h1><p className="mt-5 text-lg leading-8 text-emerald-100">Jelajahi kelas, kegiatan, dan ruang kolaborasi dari seluruh divisi TDA Pekanbaru.</p></div></div></header><div className="mx-auto max-w-7xl px-5 py-8"><PublicProgramCatalog programs={programs}/></div><footer className="mt-10 border-t bg-white px-5 py-8 text-center text-sm text-slate-500">TDA Pekanbaru 9.0 · #RiangGembira</footer></main>;
+}
