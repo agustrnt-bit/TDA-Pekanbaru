@@ -15,6 +15,7 @@ import os
 import subprocess
 import sys
 import urllib.parse
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -254,15 +255,26 @@ def main() -> int:
         record("Login VPS lokal", False, str(exc))
         return 2
 
-    access = get_json_test("Akses / identitas", "/api/access/me", cookie)
-    if isinstance(access, dict):
-        registered = bool(access.get("registered"))
-        record("Akun terdaftar di users", registered)
+    access_payload = get_json_test("Akses / identitas", "/api/access/me", cookie)
+    if isinstance(access_payload, dict):
+        access = access_payload.get("access")
+        registered = isinstance(access, dict) and bool(access.get("registered"))
+        detail = ""
+        if isinstance(access, dict):
+            identity = access.get("identity")
+            if isinstance(identity, dict):
+                detail = str(identity.get("email") or "")
+        record("Akun terdaftar di users", registered, detail)
 
     programs = get_json_test("Program Kerja — daftar", "/api/programs", cookie)
     get_json_test("Program Kerja — dashboard", "/api/program-management/summary", cookie)
     get_json_test("Program Kerja — laporan", "/api/program-management/reports", cookie)
-    get_json_test("Program Kerja — kalender", "/api/program-management/calendar", cookie)
+    current_month = datetime.now(timezone.utc).strftime("%Y-%m")
+    get_json_test(
+        "Program Kerja — kalender",
+        f"/api/program-management/calendar?month={current_month}",
+        cookie,
+    )
 
     program_id: int | None = None
     program_code: str | None = None
@@ -297,7 +309,7 @@ def main() -> int:
         record("Program detail suite", False, "ID program tidak berhasil diambil")
 
     attendance = get_json_test("Kehadiran / Event", "/api/attendance", cookie)
-    membership_admin = get_json_test("Member — pengaturan", "/api/membership", cookie)
+    get_json_test("Member — pengaturan", "/api/membership", cookie)
     get_json_test("Member — registrasi", "/api/membership?scope=registrations", cookie)
     get_json_test("Bendahara / Buku Besar", "/api/treasury", cookie)
     get_json_test("Master Pengurus", "/api/users", cookie)
