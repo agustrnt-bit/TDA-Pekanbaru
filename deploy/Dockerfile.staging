@@ -1,0 +1,25 @@
+FROM node:22-bookworm-slim
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV TDA_RUNTIME=vps
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NPM_CONFIG_AUDIT=false
+ENV NPM_CONFIG_FUND=false
+ENV NPM_CONFIG_UPDATE_NOTIFIER=false
+
+COPY package.json package-lock.json ./
+
+# package-lock is intentionally not treated as immutable yet because the VPS
+# compatibility dependency is being introduced on the migration branch. Once
+# the staging build is proven, regenerate and commit the lockfile before go-live.
+RUN npm install --include=dev --no-audit --no-fund
+
+COPY . .
+
+RUN npm run build
+
+EXPOSE 3000
+
+CMD ["npm", "start"]
