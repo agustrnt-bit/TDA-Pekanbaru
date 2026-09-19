@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import ProgramApp from "@/components/program-management/program-app";
+import { chatGPTSignInPath, chatGPTSignOutPath } from "@/app/chatgpt-auth";
 
 export const metadata: Metadata = {
   title: "Backoffice Pengurus — TDA Pekanbaru 9.0",
@@ -8,5 +9,10 @@ export const metadata: Metadata = {
 };
 
 export default function AdminPage() {
-  return <ProgramApp signInPath="/signin-with-chatgpt?return_to=%2Fadmin" signOutPath="/signout-with-chatgpt?return_to=%2Fadmin" />;
+  return (
+    <ProgramApp
+      signInPath={chatGPTSignInPath("/admin")}
+      signOutPath={chatGPTSignOutPath("/admin")}
+    />
+  );
 }

@@ -41,11 +41,18 @@ services:
       DATABASE_URL: ${DATABASE_URL}
       UPLOAD_PATH: /data/uploads
       PG_POOL_MAX: 10
+      APP_ORIGIN: ${APP_ORIGIN}
+      AUTH_SESSION_SECRET_FILE: /run/secrets/auth_session_secret
+      AUTH_PASSWORD_PEPPER_FILE: /run/secrets/auth_password_pepper
+      AUTH_SESSION_TTL_HOURS: ${AUTH_SESSION_TTL_HOURS:-12}
     volumes:
       - /srv/tda-staging/storage/uploads:/data/uploads
       - /srv/tda-staging/logs:/app/logs
     ports:
       - "127.0.0.1:3001:3000"
+    secrets:
+      - auth_session_secret
+      - auth_password_pepper
     healthcheck:
       test:
         [
@@ -68,3 +75,9 @@ networks:
 volumes:
   tda_staging_pgdata:
     name: tda-staging-pgdata
+
+secrets:
+  auth_session_secret:
+    file: /srv/tda-staging/env/auth_session_secret
+  auth_password_pepper:
+    file: /srv/tda-staging/env/auth_password_pepper
