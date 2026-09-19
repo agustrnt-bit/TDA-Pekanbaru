@@ -113,3 +113,29 @@ body {
 * { border-color: var(--border); }
 button, input, textarea { font: inherit; }
 ::selection { background: #bfe3ca; color: #153323; }
+
+@keyframes tda-showcase-marquee {
+  from { transform: translate3d(0,0,0); }
+  to   { transform: translate3d(-50%,0,0); }
+}
+
+.tda-showcase-track {
+  animation: tda-showcase-marquee 32s linear infinite;
+  will-change: transform;
+}
+
+.tda-showcase:hover .tda-showcase-track {
+  animation-play-state: paused;
+}
+
+@media (max-width: 767px) {
+  .tda-showcase-track {
+    animation-duration: 24s;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tda-showcase-track {
+    animation: none;
+  }
+}

@@ -27,6 +27,7 @@ import {
   ContactRound,
   Bell,
   Images,
+  Globe2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -45,6 +46,7 @@ import {
   prefetchJson,
 } from "@/lib/client-cache";
 import DashboardGuide from "@/components/program-management/dashboard-guide";
+import PublicSiteManagement from "@/components/program-management/public-site-management";
 
 const SectionLoading = () => (
   <div className="grid min-h-[55vh] place-items-center text-sm text-muted-foreground">
@@ -100,6 +102,7 @@ type View =
   | "treasury"
   | "attendance"
   | "membership"
+  | "website"
   | "publication"
   | "notifications"
   | "profile";
@@ -164,6 +167,7 @@ const primaryNavigation = [
     label: "Pendaftaran Member",
     icon: ContactRound,
   },
+  { id: "website" as const, label: "Website Publik", icon: Globe2 },
   { id: "publication" as const, label: "Banner & Galeri", icon: Images },
   { id: "notifications" as const, label: "Notifikasi", icon: Bell },
   { id: "profile" as const, label: "Pengurus", icon: UserRound },
@@ -178,6 +182,7 @@ const mobileMoreNavigation = [
       "finance",
       "treasury",
       "membership",
+      "website",
       "publication",
       "reports",
       "notifications",
@@ -640,7 +645,7 @@ export default function ProgramApp({
     if (
       (activeView === "membership" && !access.permissions.manageMembership) ||
       (activeView === "treasury" && !access.permissions.manageTreasury) ||
-      (activeView === "publication" && access.user?.role !== "ketua_ksb")
+      ((activeView === "publication" || activeView === "website") && access.user?.role !== "ketua_ksb")
     ) {
       const timer = window.setTimeout(() => {
         setActiveView("dashboard");
@@ -761,7 +766,7 @@ export default function ProgramApp({
                 ? access.permissions.manageTreasury
                 : id === "membership"
                   ? access.permissions.manageMembership
-                  : id === "publication"
+                  : id === "publication" || id === "website"
                     ? access.user?.role === "ketua_ksb"
                     : true,
             )
@@ -872,6 +877,9 @@ export default function ProgramApp({
           ) : activeView === "membership" &&
             access.permissions.manageMembership ? (
             <MembershipManagement />
+          ) : activeView === "website" &&
+            access.user.role === "ketua_ksb" ? (
+            <PublicSiteManagement />
           ) : activeView === "publication" &&
             access.user.role === "ketua_ksb" ? (
             <PublicMediaManagement />
@@ -943,7 +951,7 @@ export default function ProgramApp({
                   ? access.permissions.manageTreasury
                   : id === "membership"
                     ? access.permissions.manageMembership
-                    : id === "publication"
+                    : id === "publication" || id === "website"
                       ? access.user?.role === "ketua_ksb"
                       : true,
               )
